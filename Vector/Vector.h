@@ -4,33 +4,17 @@
 #include "memdata.h"
 
 template<class T>
-class Vector;
-
-template <typename T>
-std::ostream& operator<< (std::ostream&, const Vector<T>&);	// вывода
-template <typename T>
-std::istream& operator>> (std::istream&, Vector<T>&);			// ввода
-//сортировки и перемешивания
-template <typename T>
-void quick_sort(Vector<T>&);		//сортировки (Хоара)
-template <typename T>
-void shuffle(Vector<T>&);	//перемешивания (Фишер-Йетса)
-
-template<class T>
 class Vector {
-	MemData<T> _mem;	// хранилище данных + размер  + вместимость
-	size_t _front;				// индекс первого элемента
-	size_t _back;				// индекс последнего элемента
+	MemData<T> storage_;
+	size_t front_;  // индекс первого элемента
+	size_t back_;   // индекс ПОСЛЕ последнего элемента
 
 public:
-	//конструкторы
-	Vector(size_t size = 0);					// конструктор по размеру + по умолчанию
-	Vector(std::initializer_list<T>); // конструктор по списку инициализации
-	Vector(T*, size_t);               // конструктор инициализации
-	Vector(const Vector<T>&);         // конструктор копирования
-	Vector(Vector<T>&&) noexcept;     // конструктор с move-семантикой
-	//деструктор
-	//~Vector() = default; //напишется компилятором
+	Vector(size_t size = 0, const T* array = nullptr);
+	Vector(std::initializer_list<T>);
+	Vector(const Vector<T>&); 
+	Vector(Vector<T>&&) noexcept;
+	~Vector() = default;
 
 	template <class Type>
 	class Iterator {
@@ -87,415 +71,257 @@ public:
 	template<class Type> class Iterator;
 	typedef Iterator<const T> const_iterator;
 
-	iterator begin() noexcept {
-		return iterator(&get_front());
+	iterator begin() noexcept {	return iterator(&storage_[front_]);}
+	iterator end() noexcept { return iterator(&storage_[back_]);}
+	const_iterator begin() const noexcept { return iterator(&storage_[front_]); }
+	const_iterator end() const noexcept { return iterator(&storage_[back_]); }
+
+	bool isEmpty() const noexcept {
+		return front_ == back_;
 	}
-	iterator end() noexcept {
-		return iterator(&get_back()+1);
+	bool isFull() const noexcept {
+		return back_ == storage_.getCapacity();
+	}
+	size_t getSize() const noexcept {
+		return back_ - front_;
+	}
+	size_t getCapacity() const noexcept {
+		return storage_.getCapacity();
 	}
 
-	//const_iterator begin() noexcept;
-	//const_iterator end() noexcept;
-
-	//публичные методы проверок
-	inline bool is_empty() const noexcept {			// на пустоту
-		return _mem.is_empty();
-	}
-	inline bool is_full() const noexcept {			// на переполнение
-		return _mem.is_full();
+	void resize(size_t new_size);
+	void defragment() noexcept;
+	void reserve(size_t new_capacity) {
+		storage_.reserve(new_capacity);
 	}
 
-	//геттеры
-	inline size_t get_size() const noexcept {		// размера
-		return _mem._size;
-	}
-	inline size_t get_capacity() const noexcept {	// вместимости
-		return _mem._capacity;
-	}
-	inline T& get_front() const {			// первого элемента (возвр. копию)
-		if (_mem._size != 0) {
-			return (_mem._data)[_front];
-		}
-		else {
-			throw std::logic_error("ERROR: Vector is empty! Can't get front");
-		}
-	}
-	inline T& get_back() const {			// последнего элемента (возвр. копию)
-		if (_mem._size != 0) {
-			return (_mem._data)[_back];
-		}
-		else {
-			throw std::logic_error("ERROR: Vector is empty! Can't get back");
-		}
-	}
-	inline MemData<T> get_mem_copy() const noexcept {            // копии мемдаты (для тестов)
-		return _mem;
-	}
-	inline const MemData<T>& get_mem_original() const noexcept { // оригинала мемдаты (для тестов на move)
-		return _mem;
-	}
+	//MemData<T>& getData() noexcept {
+	//	return storage_;
+	//}
+	//const MemData<T>& getData() const noexcept {
+	//	return storage_;
+	//}
+	
+	void pushFront(const T&) noexcept;
+	void pushFrontMany(const T*, size_t) noexcept;
+	void pushBack(const T&) noexcept;
+	void pushBackMany(const T*, size_t) noexcept;
+	void insert(const T&, size_t);
+	void insertMany(const T*, size_t, size_t);
 
-	//сеттеры
-	inline T& front_ref() {				// первого элемента (возвр. ссылку)
-		if (_mem._size != 0) {
-			return (_mem._data)[_front];
-		}
-		else {
-			throw std::logic_error("ERROR: Vector is empty! Can't set front");
-		}
-	}
-	inline T& back_ref() {				// последнего элемента (возвр. ссылку)
-		if (_mem._size != 0) {
-			return (_mem._data)[_back];
-		}
-		else {
-			throw std::logic_error("ERROR: Vector is empty! Can't set back");
-		}
-	}
+	void popFront();
+	void popFrontMany(size_t);
+	void popBack(); 
+	void popBackMany(size_t);
+	void erase(size_t);
+	void eraseMany(size_t, size_t);
 
-	//публичные методы вставок
-	void push_front(T) noexcept;					// 1 элемента в начало
-	void push_front_many(T*, size_t) noexcept;	// нескольких в начало
-	void push_back(T) noexcept;					// 1 элемента в конец
-	void push_back_many(T*, size_t) noexcept;		// нескольких в конец
-	void insert(T, size_t);						// 1 элемента по позиции
-	void insert_many(T*, size_t, size_t);			// нескольких по позиции
-
-	//удалений
-	void pop_front();                               // 1 элемента из начала
-	void pop_front_many(size_t);					// нескольких из начала
-	void pop_back();                                // 1 элемента из конца
-	void pop_back_many(size_t);						// нескольких из конца
-	void erase(size_t);                             // 1 элемента по позиции
-	void erase_many(size_t, size_t);				// нескольких по позиции
-
-	//перегрузки операторов
-	Vector<T>& operator=(const Vector<T>&) noexcept;      // присваивания
-	Vector<T>& operator=(Vector<T>&&) noexcept;           // присваивания с move-семантикой
-	T operator[](size_t) const noexcept;       // обращения по индексу (не изм., возвр. копию)
-	T& operator[](size_t) noexcept;            // обращения по индексу (изм., возвр. ссылку)
-
-	//дружественные функции
-	//перегрузки ввода-вывода
-	template <typename T>
-	friend std::ostream& operator<< (std::ostream&, const Vector<T>&);	// вывода
-	template <typename T>
-	friend std::istream& operator>> (std::istream&, Vector<T>&);			// ввода
-	//сортировки и перемешивания
-	template <typename T>
-	friend void quick_sort(Vector<T>&);		//сортировки (Хоара)
-	template <typename T>
-	friend void shuffle(Vector<T>&);	//перемешивания (Фишер-Йетса)
+	Vector<T>& operator=(const Vector<T>&) noexcept;
+	Vector<T>& operator=(Vector<T>&&) noexcept;
+	T& operator[](size_t) noexcept;
+	const T& operator[](size_t) const noexcept;
 
 private:
 	//служебный метод получения (геттер) физического индекса по относительному
-	inline size_t get_mem_index(size_t i) const {
-		return ((i + _front) % _mem._capacity);
+	size_t getDataIndex(size_t i) const noexcept {
+		return i + front_;
 	}
 };
 
-//инстанцирование шаблона (генерация объектного файла под определенный тд):
-//template class Vector<double>;
-//template std::ostream& operator<< (std::ostream& out, const Vector<double>& v1);
-//template std::istream& operator>> (std::istream& in, Vector<double>& v1);
-//template void shuffle(Vector<double>&);
-//template void quick_sort(Vector<double>&);
-
-//дружественные функции
-//сортировки и перемешивания
-template<typename T>
-void quick_sort(Vector<T>& vector) {
-	quick_sort(vector._mem);
-}
-template<typename T>
-void shuffle(Vector<T>& vector) {
-	shuffle(vector._mem);
-}
-
-//перегрузки ввода-вывода
-template <typename T>
-std::ostream& operator<< (std::ostream& out, const Vector<T>& vector) {	// вывода
-	out << "{ ";
-	size_t size = vector.get_size();
-	if (size != 0) {
-		out << vector._mem.get_data_const()[vector._front];
+template<class Type>
+std::ostream& operator<< (std::ostream& out, const Vector<Type>& vector) {
+	size_t size = vector.getSize();
+	for (size_t i = 0; i < size; i++) {
+		out << vector[i] << ' ';
 	}
-	for (size_t i = 1; i < size; i++) {
-		out << ", " << vector._mem.get_data_const()[vector.get_mem_index(i)];
-	}
-	out << " }";
 	return out;
-};
-template <typename T>
-std::istream& operator>> (std::istream& in, Vector<T>& vector) {			// ввода
-	Vector<T> temp;
-	T element;
-	in >> element;
+}
+
+template<class Type>
+std::istream& operator>> (std::istream& in, Vector<Type>& vector) {
+	Type element;
 	while (in >> element) {
-		temp.push_back(element);
+		vector.pushBack(element);
 	}
-	vector = std::move(temp);
 	return in;
-};
-
-//конструкторы
-template<typename T>
-Vector<T>::Vector(size_t size) :_mem(size) {
-	/*MemData<T> temp(size);
-	//_mem = (std::move(temp));*/
-	_front = 0;
-	if (size > 0) {
-		_back = size - 1;
-	}
-	else {
-		_back = 0;
-	}
-}
-template<typename T>
-Vector<T>::Vector(std::initializer_list<T> list) :_mem(list) {
-	//MemData<T> temp(list);
-	//_mem = (std::move(temp));
-	_front = 0;
-	if (_mem._size > 0) {
-		_back = _mem._size - 1;
-	}
-	else {
-		_back = 0;
-	}
-}
-template<typename T>
-Vector<T>::Vector(T* array, size_t size) :_mem(array, size) {
-	//MemData<T> temp(array, size);
-	//_mem = (std::move(temp));
-	_front = 0;
-	if (_mem._size > 0) {
-		_back = _mem._size - 1;
-	}
-	else {
-		_back = 0;
-	}
-}
-template<typename T>
-Vector<T>::Vector(const Vector<T>& other) {
-	_mem = other._mem;
-	_front = other._front;
-	_back = other._back;
-}
-template<typename T>
-Vector<T>::Vector(Vector<T>&& other) noexcept {
-	_mem = std::move(other._mem);
-	_front = other._front;
-	other._front = 0;
-	_back = other._back;
-	other._back = 0;
 }
 
-//публичные методы
-//вставок
-template<typename T>
-void Vector<T>::push_front(T element) noexcept {
-	_mem._size++;
-	if (_mem._size > 1) {
-		_front = (_front + _mem._capacity - 1) % _mem._capacity;
-	}
-	_mem._data[_front] = element;
-	if (is_full()) {
-		_mem.reset_memory(_mem._size, _front);
-		_front = 0;
-		_back = _mem._size - 1;
-	}
+template<class T>
+Vector<T>::Vector(size_t size, const T* array) :storage_(size, array), front_(0), back_(size) {}
+
+template<class T>
+Vector<T>::Vector(std::initializer_list<T> list) :storage_(list), front_(0), back_(list.size()) {}
+
+template<class T>
+Vector<T>::Vector(const Vector<T>& other): storage_(other.storage_), front_(other.front_), back_(other.back_) {}
+
+template<class T>
+Vector<T>::Vector(Vector<T>&& other) noexcept : storage_(std::move(other.storage_)), front_(other.front_), back_(other.back_) {
+	other.front_ = 0;
+	other.back_ = 0;
 }
 
-template<typename T>
-void Vector<T>::push_front_many(T* elements, size_t size) noexcept {
-	for (int i = size - 1; i >= 0; i--) { //идем с конца тк кладем в начало
-		push_front(elements[i]);
+template<class T>
+void Vector<T>::resize(size_t new_size) {
+
+	size_t needed = front_ + new_size;
+	if (new_size <= getSize()) {
+		back_ = needed;
+		return;
+	}
+
+	size_t current_capacity = getCapacity();
+
+	if (needed > current_capacity) {
+		// Если front большой — сначала дефрагментируем
+		if (front_ > current_capacity / 2) {
+			defragment(); // front_ = 0, back_ = getSize()
+			storage_.reserve(storage_.calculateCapacity_(new_size));
+		}
+	}
+
+	back_ = front_ + new_size;
+}
+
+template<class T>
+void Vector<T>::defragment() noexcept
+{
+	if (front_ == 0) return;  // уже в начале
+
+	size_t current_size = getSize();
+
+	// Сдвигаем элементы в начало
+	for (size_t i = 0; i < current_size; ++i) {
+		storage_[i] = std::move(storage_[getDataIndex(i)]);
+	}
+
+	front_ = 0;
+	back_ = current_size;
+}
+
+template<class T>
+void Vector<T>::pushFront(const T& element) noexcept {
+	if (front_ > 0) {
+		--front_;
+	}
+	else if (isFull()) {
+		storage_.reallocateWithShiftRight(storage_.calculateCapacity_(getSize() + 1), 0);
+		back_++;
+	}
+	else { // Если front_ == 0, но вектор не полный, сдвигаем элементы вправо
+		storage_.shiftRight(0, getSize());
+		back_++;
+	}
+	storage_[front_] = element;
+}
+
+template<class T>
+void Vector<T>::pushFrontMany(const T* elements, size_t size) noexcept {
+	for (int i = size - 1; i >= 0; i--) { //идем с конца т.к. кладем в начало
+		pushFront(elements[i]);
 	}
 }
-template<typename T>
-void Vector<T>::push_back(T element) noexcept {
-	_mem._size++;
-	if (_mem._size > 1) {
-		_back = (_back + 1) % _mem._capacity;
+template<class T>
+void Vector<T>::pushBack(const T& element) noexcept {
+	if (isFull()) {
+		storage_.realloc(storage_.calculateCapacity_(getSize() + 1), back_);
 	}
-	_mem._data[_back] = element;
-	if (is_full()) {
-		_mem.reset_memory(_mem._size, _front);
-		_front = 0;
-		_back = _mem._size - 1;
+	storage_[back_++] = element;
+}
+template<class T>
+void Vector<T>::pushBackMany(const T* elements, size_t size) noexcept {
+	for (int i = 0; i < size; i++) { //идем с начала т.к. кладем в конец
+		pushBack(elements[i]);
 	}
 }
-template<typename T>
-void Vector<T>::push_back_many(T* elements, size_t size) noexcept {
-	for (int i = 0; i < size; i++) { //идем с начала тк кладем в конец
-		push_back(elements[i]);
-	}
-}
-template<typename T>
-void Vector<T>::insert(T element, size_t i) {
-	if (i > _mem._size) {
+template<class T>
+void Vector<T>::insert(const T& element, size_t index) {
+	size_t validIndex = getDataIndex(index);
+	if (validIndex > getSize()|| validIndex < 0) {
 		throw std::out_of_range("ERROR: Insert index out of range!");
 	}
+	if (validIndex == 0) {
+		pushFront(element);
+	}
+	else if (validIndex == getSize()) {
+		pushBack(element);
+	}
 	else {
-		if (i == 0) {
-			push_front(element);
-		}
-		else if (i == _mem._size) {
-			push_back(element);
+		if (isFull()) {
+			storage_.reallocateWithShiftRight(storage_.calculateCapacity_(getSize() + 1), validIndex);
+			front_ = 0;
 		}
 		else {
-			_mem._size++;
-			_back = (_back + 1) % _mem._capacity;
-			for (int j = _mem._size - 1; j > i; j--) {
-				(*this)[j] = (*this)[j - 1];
-			}
-			(*this)[i] = element;
-			if (is_full()) {
-				_mem.reset_memory(_mem._size, _front);
-				_front = 0;
-				_back = _mem._size - 1;
-			}
+			storage_.shiftRight(validIndex, back_ - validIndex);
 		}
-	}
-}
-template<typename T>
-void Vector<T>::insert_many(T* elements, size_t size, size_t i) {
-	if (i > _mem._size) {
-		throw std::out_of_range("ERROR: Insert (many) index out of range!");
-	}
-	else {
-		for (int j = 0; j < size; j++) {
-			insert(elements[j], i + j);
-		}
+		++back_;
+		storage_[validIndex] = element;
 	}
 }
 
-//удалений
-template<typename T>
-void Vector<T>::pop_front() {
-	if (_mem._size == 0) {
+template<class T>
+void Vector<T>::insertMany(const T* elements, size_t size, size_t index) {
+	size_t validIndex = getDataIndex(index);
+	if (validIndex > getSize()) {
+		throw std::out_of_range("ERROR: Insert (many) index out of range!");
+	}
+	for (int j = 0; j < size; j++) {
+		insert(elements[j], validIndex + j);
+	}
+}
+
+template<class T>
+void Vector<T>::popFront() {
+	if (getSize() == 0) {
 		throw std::logic_error("ERROR: Empty vector! Can't pop front");
 	}
-	else {
-		_mem._size--;
-		if (_mem._size != 0) {
-			_front = (_front + 1) % _mem._capacity;
-		}
-		else {
-			_front = 0;
-			_back = 0;
-		}
-		if (_mem._capacity - _mem._size > MEM_STEP) {
-			_mem.reset_memory(_mem._size, _front);
-			_front = 0;
-			if (_mem._size != 0) {
-				_back = _mem._size - 1;
-			}
-		}
-	}
+	++front_;
 }
-template<typename T>
-void Vector<T>::pop_front_many(size_t count) {
-	if (_mem._size < count) {
+template<class T>
+void Vector<T>::popFrontMany(size_t count) {
+	if (getSize() < count) {
 		throw std::logic_error("ERROR: Popping (front) too many elements!");
 	}
-	else {
-		_mem._size -= count;
-		if (_mem._size != 0) {
-			_front = (_front + count) % _mem._capacity;
-		}
-		else {
-			_front = 0;
-			_back = 0;
-		}
-		if (_mem._capacity - _mem._size > MEM_STEP) {
-			_mem.reset_memory(_mem._size, _front);
-			_front = 0;
-			if (_mem._size != 0) {
-				_back = _mem._size - 1;
-			}
-		}
+	for (size_t i = 0; i < count; ++i) {
+		popFront();
 	}
 }
-template<typename T>
-void Vector<T>::pop_back() {
-	if (_mem._size == 0) {
+template<class T>
+void Vector<T>::popBack() {
+	if (getSize() == 0) {
 		throw std::logic_error("ERROR: Empty vector! Can't pop back");
 	}
-	else {
-		_mem._size--;
-		if (_mem._size != 0) {
-			_back = (_back + _mem._capacity - 1) % _mem._capacity;
-		}
-		else {
-			_front = 0;
-			_back = 0;
-		}
-		if (_mem._capacity - _mem._size > MEM_STEP) {
-			_mem.reset_memory(_mem._size, _front);
-			_front = 0;
-			if (_mem._size != 0) {
-				_back = _mem._size - 1;
-			}
-		}
-	}
+	--back_;
 }
-template<typename T>
-void Vector<T>::pop_back_many(size_t count) {
-	if (_mem._size < count) {
+template<class T>
+void Vector<T>::popBackMany(size_t count) {
+	if (getSize() < count) {
 		throw std::logic_error("ERROR: Popping (back) too many elements!");
 	}
-	else {
-		_mem._size -= count;
-		if (_mem._size != 0) {
-			_back = (_back + _mem._capacity - count) % _mem._capacity;
-		}
-		else {
-			_front = 0;
-			_back = 0;
-		}
-		if (_mem._capacity - _mem._size > MEM_STEP) {
-			_mem.reset_memory(_mem._size, _front);
-			_front = 0;
-			if (_mem._size != 0) {
-				_back = _mem._size - 1;
-			}
-		}
+	for (size_t i = 0; i < count; ++i) {
+		popBack();
 	}
 }
-template<typename T>
-void Vector<T>::erase(size_t i) {
-	if (i >= _mem._size) {
+template<class T>
+void Vector<T>::erase(size_t index) {
+	size_t validIndex = getDataIndex(index);
+	if (validIndex >= getSize() || validIndex < 0) {
 		throw std::out_of_range("ERROR: Erase index out of range!");
 	}
+	if (validIndex == 0) {
+		popFront();
+	}
+	else if (validIndex == getSize() - 1) {
+		popBack();
+	}
 	else {
-		if (i == 0) {
-			pop_front();
-		}
-		else if (i == _mem._size - 1) {
-			pop_back();
-		}
-		else {
-			_back = (_back - 1 + _mem._capacity) % _mem._capacity;
-			for (int j = i; j < _mem._size - 1; j++) {
-				(*this)[j] = (*this)[j + 1];
-			}
-			_mem._size--;
-			if (_mem._size == 0) {
-				_front = 0;
-				_back = 0;
-			}
-			if (_mem._capacity - _mem._size > MEM_STEP) {
-				_mem.reset_memory(_mem._size, _front);
-				_front = 0;
-				_back = _mem._size == 0 ? 0 : _mem._size - 1;
-			}
-		}
+		storage_.shiftLeft(validIndex, back_ - validIndex);
+		--back_;
 	}
 }
-template<typename T>
-void Vector<T>::erase_many(size_t i, size_t count) {
-	if (i + count > _mem._size) {
+template<class T>
+void Vector<T>::eraseMany(size_t i, size_t count) {
+	if (i + count > storage_.size_) {
 		throw std::logic_error("ERROR: Erasing too many elements!");
 	}
 	for (int j = 0; j < count; j++) {
@@ -503,34 +329,35 @@ void Vector<T>::erase_many(size_t i, size_t count) {
 	}
 }
 
-//перегрузки операторов
-template<typename T>
+template<class T>
 Vector<T>& Vector<T>::operator=(const Vector<T>& other) noexcept {
 	if (this != &other) {
-		_mem = other._mem;
-		_front = other._front;
-		_back = other._back;
+		storage_ = other.storage_;
+		front_ = other.front_;
+		back_ = other.back_;
 	}
 	return (*this);
 }
-template<typename T>
+template<class T>
 Vector<T>& Vector<T>::operator=(Vector<T>&& other) noexcept {
 	if (this != &other) {
-		_mem = std::move(other._mem);
-		_front = other._front;
-		other._front = 0;
-		_back = other._back;
-		other._back = 0;
+		storage_ = std::move(other.storage_);
+		front_ = other.front_;
+		other.front_ = 0;
+		back_ = other.back_;
+		other.back_ = 0;
 	}
 	return (*this);
 }
-template<typename T>
-T Vector<T>::operator[](size_t i) const noexcept {
-	return _mem._data[(*this).get_mem_index(i)];
+
+template<class T>
+const T& Vector<T>::operator[](size_t i) const noexcept {
+	return storage_[getDataIndex(i)];
 }
-template<typename T>
+
+template<class T>
 T& Vector<T>::operator[](size_t i) noexcept {
-	return _mem._data[(*this).get_mem_index(i)];
+	return storage_[getDataIndex(i)];
 }
 
 

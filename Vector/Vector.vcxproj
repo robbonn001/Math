@@ -126,10 +126,6 @@
     <ClInclude Include="MemData.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="MemData.cpp" />
-    <ClCompile Include="Vector.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

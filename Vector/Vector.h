@@ -11,7 +11,7 @@ class Vector {
 
 public:
 	Vector(size_t size = 0, const T* array = nullptr);
-	Vector(std::initializer_list<T>);
+	Vector(const std::initializer_list<T> list);
 	Vector(const Vector<T>&); 
 	Vector(Vector<T>&&) noexcept;
 	~Vector() = default;
@@ -159,8 +159,9 @@ std::ostream& operator<< (std::ostream& out, const Vector<Type>& vector) {
 template<class Type>
 std::istream& operator>> (std::istream& in, Vector<Type>& vector) {
 	Type element;
-	while (in >> element) {
-		vector.pushBack(element);
+	size_t i = 0;
+	while (i < vector.size() && in >> element) {
+		vector[i++] = element;
 	}
 	return in;
 }
@@ -169,7 +170,7 @@ template<class T>
 Vector<T>::Vector(size_t size, const T* array) :storage_(size, array), front_(0), back_(size) {}
 
 template<class T>
-Vector<T>::Vector(std::initializer_list<T> list) :storage_(list), front_(0), back_(list.size()) {}
+Vector<T>::Vector(const std::initializer_list<T> list) :storage_(list), front_(0), back_(list.size()) {}
 
 template<class T>
 Vector<T>::Vector(const Vector<T>& other): storage_(other.size()), front_(other.front_), back_(other.back_) {
@@ -392,7 +393,7 @@ Vector<T>& Vector<T>::operator=(const Vector<T>& other) noexcept {
 	if (this != &other) {
 		front_ = other.front_;
 		back_ = other.back_;
-		storage_.allocateRaw(other.capacity()); // резервируем память под элементы
+		storage_.allocateRaw(other.capacity()); // резервируем память под элементы и удаляем старые
 		for (size_t i = 0; i < size(); ++i) {
 			(*this)[i] = other[i]; // копируем элементы, учитывая смещение front_
 		}

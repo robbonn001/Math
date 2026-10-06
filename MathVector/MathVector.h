@@ -7,17 +7,17 @@ private:
 	size_t _start_index;
 public:
 	MathVector(size_t size = 0, const T* array = nullptr);
-	MathVector(std::initializer_list<T> data);
+	MathVector(const std::initializer_list<T> data);
 	MathVector(const MathVector<T>& other);
 	MathVector(MathVector<T>&& other) noexcept;
 	~MathVector() = default;
 
-	MathVector<T> operator* (T value) const noexcept;
-	MathVector<T>& operator*=(T value) noexcept;
+	MathVector<T> operator* (double value) const noexcept;
+	MathVector<T>& operator*=(double value) noexcept;
 
 	MathVector<T> operator+ (const MathVector<T>& other) const;
 	MathVector<T> operator- (const MathVector<T>& other) const;
-	T operator* (const MathVector<T>& other) const;
+	double operator* (const MathVector<T>& other) const;
 
 	MathVector<T>& operator+=(const MathVector<T>& other);
 	MathVector<T>& operator-=(const MathVector<T>& other);
@@ -34,7 +34,7 @@ MathVector<T>::MathVector(size_t size, const T* array) : Vector<T>(size, array),
 }
 
 template <class T>
-MathVector<T>::MathVector(std::initializer_list<T> data) : Vector<T>(data), _start_index(0) {
+MathVector<T>::MathVector(const std::initializer_list<T> data) : Vector<T>(data), _start_index(0) {
 	this->realloc(data.size());
 }
 
@@ -49,14 +49,14 @@ MathVector<T>::MathVector(MathVector<T>&& other) noexcept: Vector<T>(std::move(o
 }
 
 template <class T>
-MathVector<T> MathVector<T>::operator*(T value)const noexcept {
+MathVector<T> MathVector<T>::operator*(double value)const noexcept {
 	MathVector<T> res(*this);
 	res *= value;
 	return res;
 }
 
 template <class T>
-MathVector<T>& MathVector<T>::operator*=(T value)noexcept {
+MathVector<T>& MathVector<T>::operator*=(double value)noexcept {
 	for (int i = 0;i < this->size();++i) {
 		(*this)[i] *= value;
 	}
@@ -82,11 +82,11 @@ MathVector<T> MathVector<T>::operator-(const MathVector<T>& other) const {
 }
 
 template <class T>
-T MathVector<T>::operator* (const MathVector<T>& other) const {
+double MathVector<T>::operator* (const MathVector<T>& other) const {
 	if (this->size() != other.size()) {
 		throw std::logic_error("ERROR: Vectors must be of the same size for dot product!");
 	}
-	T res = T(0);
+	double res = 0.0;
 	for (int i = 0;i < this->size();++i) {
 		res += (*this)[i] * other[i];
 	}

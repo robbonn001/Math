@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.10.12210.168 stable
+VisualStudioVersion = 18.10.12210.168
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Math", "Math.vcxproj", "{A3F5C447-4119-4C0A-92AE-C3EC16B86AEE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Vector", "Vector\Vector.vcxproj", "{40E52359-DF81-442B-9019-4022F0EE0B73}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MathVector", "MathVector\MathVector.vcxproj", "{47EDA50F-C60C-4702-9E21-1661CB588D4B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VectorTests", "VectorTests\VectorTests.vcxproj", "{860D6605-D532-424A-9F9C-7747F4AAEAB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{47EDA50F-C60C-4702-9E21-1661CB588D4B}.Release|x64.Build.0 = Release|x64
 		{47EDA50F-C60C-4702-9E21-1661CB588D4B}.Release|x86.ActiveCfg = Release|Win32
 		{47EDA50F-C60C-4702-9E21-1661CB588D4B}.Release|x86.Build.0 = Release|Win32
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Debug|x64.ActiveCfg = Debug|x64
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Debug|x64.Build.0 = Debug|x64
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Debug|x86.ActiveCfg = Debug|Win32
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Debug|x86.Build.0 = Debug|Win32
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Release|x64.ActiveCfg = Release|x64
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Release|x64.Build.0 = Release|x64
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Release|x86.ActiveCfg = Release|Win32
+		{860D6605-D532-424A-9F9C-7747F4AAEAB5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

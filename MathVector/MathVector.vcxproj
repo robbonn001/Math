@@ -146,9 +146,6 @@
     <ClInclude Include="MathVector.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MathVector.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Vector\Vector.vcxproj">
       <Project>{40e52359-df81-442b-9019-4022f0ee0b73}</Project>
     </ProjectReference>

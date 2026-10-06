@@ -159,9 +159,8 @@ std::ostream& operator<< (std::ostream& out, const Vector<Type>& vector) {
 template<class Type>
 std::istream& operator>> (std::istream& in, Vector<Type>& vector) {
 	Type element;
-	size_t i = 0;
-	while (i < vector.size() && in >> element) {
-		vector[i++] = element;
+	while (in >> element) {
+		vector.pushBack(element);
 	}
 	return in;
 }

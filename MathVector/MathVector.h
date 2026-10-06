@@ -28,6 +28,16 @@ public:
 	bool operator!=(const MathVector<T>& other) const noexcept;
 };
 
+template<class Type>
+std::istream& operator>> (std::istream& in, MathVector<Type>& vector) {
+	Type element;
+	size_t i = 0;
+	while (i < vector.size() && in >> element) {
+		vector[i++] = element;
+	}
+	return in;
+}
+
 template <class T>
 MathVector<T>::MathVector(size_t size, const T* array) : Vector<T>(size, array), _start_index(0) {
 	this->realloc(size);

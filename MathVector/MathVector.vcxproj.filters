@@ -15,15 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Vector.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="MemData.h">
+    <ClInclude Include="MathVector.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Vector.cpp">
+    <ClCompile Include="MathVector.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
